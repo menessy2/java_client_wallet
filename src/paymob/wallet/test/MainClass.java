@@ -21,7 +21,7 @@ public class MainClass {
 		mob.login();
 
 
-		System.out.println("Generating normal send message request");
+		//System.out.println("Generating normal send message request");
 		//x.genNormalReq();
 		
 		/*
