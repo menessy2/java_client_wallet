@@ -56,7 +56,8 @@ public class Mobile {
 		KeyPairGenerator keyPairGenerator;
 		try {
 			keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-			keyPairGenerator.initialize(2048, new SecureRandom());
+                       
+                        keyPairGenerator.initialize(2048, new SecureRandom());
 			KeyPair keyPair = keyPairGenerator.genKeyPair();
 			publicKey = keyPair.getPublic();
 
@@ -106,7 +107,7 @@ public class Mobile {
 		byte[] cipherText = null;
 		try {
 			// get an RSA cipher object and print the provider
-			final Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			final Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
 			// encrypt the plain text using the public key
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 			System.out.println( new String(plain, "UTF-8"));			
@@ -114,20 +115,20 @@ public class Mobile {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return bytesToHex(cipherText);
+		return DatatypeConverter.printBase64Binary( cipherText );
 	}
 
-	public String generate_hash(String key_per_session_120_bit) {
+	public byte[] generate_hash(byte[] key_per_session_256_bit) {
 		// imp note : the mobile number should be in the following form 2010xxx
 		// ( pre-pended by 2 )
 		String data = this.mobile_number + this.device_id + this.sim_serial_id
-				+ this.app_id + key_per_session_120_bit;
+				+ this.app_id + bytesToHex(key_per_session_256_bit);
 		MessageDigest mda;
 		try {
 			mda = MessageDigest.getInstance("SHA-512");
 			byte[] digesta = mda.digest(data.getBytes());
 			
-				return bytesToHex(digesta);
+				return digesta;
 				
 			
 		} catch (NoSuchAlgorithmException e) {
@@ -139,11 +140,12 @@ public class Mobile {
 
 	public void login() {
 		SecureRandom random = new SecureRandom();
-		String r = bytesToHex(random.generateSeed(120));
-		String encrypted_value = generate_hash(r);
+		byte[] key_per_session = random.generateSeed(16);
+		byte[] encrypted_value = generate_hash(key_per_session);
 		
-		String encrypted_hash = encrypt(encrypted_value.getBytes(), publicKey);
-		String key_per_session = encrypt(r.getBytes(), publicKey);
+                
+		String encrypted_hash = encrypt(encrypted_value, publicKey);
+		String _key_per_session = encrypt(key_per_session, publicKey);
 
 		
 		
@@ -151,7 +153,7 @@ public class Mobile {
 		JSONArray list = new JSONArray();
 		list.add(encrypted_hash);
 		list.add(app_id);
-		list.add(key_per_session);
+		list.add(_key_per_session);
 
 		jsonobj.put("account", list);
 
