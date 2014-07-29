@@ -28,10 +28,11 @@ import javax.xml.bind.DatatypeConverter;
 
 public class Mobile {
 
-	private String device_id = "my device id";
-	private String sim_serial_id = "my serial sim id";
+	private String device_id = "my_device_id";      // spaces are not allowed in such variable
+	private String sim_serial_id = "my_serial_sim_id"; // spaces are not allowed in such variable
 	public String app_id;
-	private String mobile_number = "01005558658";
+	private String mobile_number = "201005558658";
+        // any mobile number stored on the mobile should be appended by 2 , for example : 2010..
 
 	private String gcm_id = "gcm_id";
 	private String adm_id = "adm_id";
@@ -134,7 +135,8 @@ public class Mobile {
 		// ( pre-pended by 2 )
 		String data = this.mobile_number + this.device_id + this.sim_serial_id
 				+ this.app_id + key_per_session_256_bit;
-		MessageDigest mda;
+		System.out.println(data);
+                MessageDigest mda;
 		try {
 			mda = MessageDigest.getInstance("SHA-512");
 			byte[] digesta = mda.digest(data.getBytes());
@@ -154,12 +156,15 @@ public class Mobile {
 		String key_per_session = generateRandomString();//random.generateSeed(16);
 		byte[] encrypted_value = generate_hash(key_per_session);
 		
-                
-                System.out.println(key_per_session);
+                System.out.println( DatatypeConverter.printBase64Binary( encrypted_value ) );
+
+                //System.out.println(key_per_session);
                 
 		String encrypted_hash = encrypt(encrypted_value, publicKey);
 		String _key_per_session = encrypt(key_per_session.getBytes(), publicKey);		
 		
+                //System.out.println(encrypted_hash);
+                
 		JSONObject jsonobj = new JSONObject();
 		JSONArray list = new JSONArray();
 		list.add(encrypted_hash);
@@ -170,6 +175,6 @@ public class Mobile {
 
 		String request = HttpRequest.executeHttpRequest(jsonobj,
 				HttpRequest.Function.LOGIN);
-		//System.out.println(request);
+		System.out.println(request);
 	}
 }
