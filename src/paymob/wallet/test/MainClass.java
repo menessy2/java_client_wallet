@@ -1,8 +1,12 @@
 package paymob.wallet.test;
 
 
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 
 public class MainClass {
@@ -10,29 +14,35 @@ public class MainClass {
         String content;
 
 	public static void main(String[] args)  {
-		System.out.println("Hello first");
-		
-		MainClass x = new MainClass();
-		Mobile mob = new Mobile();
-		System.out.println("Activation Request is occuring");
-		mob.activate("myxgx");
-		
-		System.out.println("Generating Login Request");
-		mob.login();
-
-
-		//System.out.println("Generating normal send message request");
-		//x.genNormalReq();
-		
-		/*
-		System.out.println("Generating normal send payment request");
-		x.genPayReq();
-		System.out.println("Generating normal Transaction request");
-		x.genTransactionRequestReq();
-		
-		//cancelTransactionRequest();
-		//syncContacts();
-		*/
+            try {
+                System.out.println("Hello first");
+                
+                MainClass x = new MainClass();
+                Mobile mob = new Mobile();
+                System.out.println("Activation Request is occuring");
+                mob.activate("myxgx");
+                
+                System.out.println("Generating Login Request");
+                mob.login();
+                
+                
+                //System.out.println("Generating normal send message request");
+                //x.genNormalReq();
+                
+                /*
+                System.out.println("Generating normal send payment request");
+                x.genPayReq();
+                System.out.println("Generating normal Transaction request");
+                x.genTransactionRequestReq();
+                
+                //cancelTransactionRequest();
+                //syncContacts();
+                */
+            } catch (ParseException ex) {
+                Logger.getLogger(MainClass.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(MainClass.class.getName()).log(Level.SEVERE, null, ex);
+            }
 	}
 
 
