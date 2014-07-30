@@ -1,15 +1,13 @@
 package paymob.wallet.test;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.io.pem.PemWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
@@ -18,13 +16,29 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.Arrays;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import static org.apache.http.protocol.HTTP.ASCII;
+import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.util.io.pem.PemWriter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import sun.misc.BASE64Decoder;
 
 public class Mobile {
 
@@ -112,8 +126,6 @@ public class Mobile {
 			e.printStackTrace();
 		}
 
-		System.out.println(request);
-
 	}
 
 	public static String encrypt(byte[] plain, PublicKey key) {
@@ -135,7 +147,6 @@ public class Mobile {
 		// ( pre-pended by 2 )
 		String data = this.mobile_number + this.device_id + this.sim_serial_id
 				+ this.app_id + key_per_session_256_bit;
-		System.out.println(data);
                 MessageDigest mda;
 		try {
 			mda = MessageDigest.getInstance("SHA-512");
@@ -151,30 +162,62 @@ public class Mobile {
 		return null;
 	}
 
-	public void login() {
-		//SecureRandom random = new SecureRandom();
-		String key_per_session = generateRandomString();//random.generateSeed(16);
-		byte[] encrypted_value = generate_hash(key_per_session);
-		
-                System.out.println( DatatypeConverter.printBase64Binary( encrypted_value ) );
-
-                //System.out.println(key_per_session);
+	public void login() throws ParseException, NoSuchAlgorithmException, IOException {
+          
+                String key_per_session = generateRandomString();
+                byte[] encrypted_value = generate_hash(key_per_session);
                 
-		String encrypted_hash = encrypt(encrypted_value, publicKey);
-		String _key_per_session = encrypt(key_per_session.getBytes(), publicKey);		
-		
-                //System.out.println(encrypted_hash);
+                String encrypted_hash = encrypt(encrypted_value, publicKey);
+                String _key_per_session = encrypt(key_per_session.getBytes(), publicKey);
+                JSONObject jsonobj = new JSONObject();
+                JSONArray list = new JSONArray();
+                list.add(encrypted_hash);
+                list.add(app_id);
+                list.add(_key_per_session);
                 
-		JSONObject jsonobj = new JSONObject();
-		JSONArray list = new JSONArray();
-		list.add(encrypted_hash);
-		list.add(app_id);
-		list.add(_key_per_session);
-
-		jsonobj.put("account", list);
-
-		String request = HttpRequest.executeHttpRequest(jsonobj,
-				HttpRequest.Function.LOGIN);
-		System.out.println(request);
+                jsonobj.put("account", list);
+                
+                String request = HttpRequest.executeHttpRequest(jsonobj,
+                        HttpRequest.Function.LOGIN);
+                    
+                BASE64Decoder base64decoder = new BASE64Decoder();  
+                byte[] cleartext = base64decoder.decodeBuffer( request );
+                
+                byte[] req = decrypt_aes(cleartext, key_per_session, "ZgP#d_qH543LgpS-");
+                
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) jsonParser.parse(new String(req));
+                System.out.println(jsonObject.toString());
 	}
+        
+        
+        private static final Charset ASCII = Charset.forName("US-ASCII");
+        
+        public static byte[] decrypt_aes(byte[] plainText, String encryptionKey, String IV)  {
+            try {
+                Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+                SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes(), "AES");
+                cipher.init(Cipher.DECRYPT_MODE, key,new IvParameterSpec(IV.getBytes("UTF8")));
+                
+                return cipher.doFinal(plainText);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidAlgorithmParameterException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalBlockSizeException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (BadPaddingException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+            }
+   
+        
+            return null;
+       }
+
 }
