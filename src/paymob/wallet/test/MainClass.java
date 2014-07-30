@@ -1,6 +1,7 @@
 package paymob.wallet.test;
 
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +14,7 @@ public class MainClass {
 
         String content;
 
-	public static void main(String[] args)  {
+	public static void main(String[] args) throws IOException  {
             try {
                 System.out.println("Hello first");
                 
