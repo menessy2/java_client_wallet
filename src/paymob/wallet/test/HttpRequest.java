@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 
 import javax.net.ssl.SSLSocketFactory;
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -77,6 +78,81 @@ public class HttpRequest {
 			conn.setRequestProperty("Content-Type", type);
 			conn.setRequestProperty("Content-Length",
 					String.valueOf(encodedData.length()));
+			OutputStream os = conn.getOutputStream();
+			os.write(encodedData.getBytes());
+
+			if (conn.getResponseCode() == 200) {
+				is = conn.getInputStream();
+			} else {
+			    is = conn.getErrorStream();
+			    PrintWriter writer;
+			    int ret = 0;
+				while ((ret = is.read(buf)) > 0) {
+					os2.write(buf, 0, ret);
+				}
+				try {
+					
+					writer = new PrintWriter("/root/wallet_debug.html", "UTF-8");
+					writer.println(new String(os2.toByteArray()));
+					writer.close();
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			int ret = 0;
+			while ((ret = is.read(buf)) > 0) {
+				os2.write(buf, 0, ret);
+			}
+			// close the inputstream
+			is.close();
+			return new String(os2.toByteArray());
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			 
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			
+		}
+
+		return encodedData;
+
+	}
+        
+        
+        public static String executeHTTPSRequest(JSONObject jsonObj, Function func, String key_per_session, String session) throws UnsupportedEncodingException {
+
+		if (!isReady) {
+			init();
+			isReady = true;
+		}
+                byte[] mybyte = jsonObj.toString().getBytes();
+                
+                byte[] req = Mobile.encrypt_aes(mybyte, key_per_session, "ZgP#d_qH543LgpS-");
+                System.out.println("KEY:"+key_per_session);
+		String type = "application/x-www-form-urlencoded";
+                //System.out.println(session);
+                String raw = session.substring(0,20) + 
+                        DatatypeConverter.printBase64Binary( req ) + session.substring(20,32);
+		String encodedData = URLEncoder.encode(raw);
+		URL u;
+		HttpURLConnection conn; 
+		InputStream is;
+		ByteArrayOutputStream os2 = new ByteArrayOutputStream();
+
+		byte[] buf = new byte[4096];
+		try {
+			u = new URL(backend_url + methods.get(func));
+			conn = (HttpURLConnection) u.openConnection();
+			conn.setDoOutput(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", type);
+			conn.setRequestProperty("Content-Length",
+					String.valueOf(encodedData.length()));
+                        
+                        
+                        
 			OutputStream os = conn.getOutputStream();
 			os.write(encodedData.getBytes());
 
