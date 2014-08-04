@@ -222,7 +222,7 @@ public class Mobile {
         }
     }
 
-    public void sendMessage(String content) throws UnsupportedEncodingException {
+    public void sendMessage(String content) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
         JSONObject jsonobj = new JSONObject();
         JSONObject jsonobj_internal = new JSONObject();
         JSONArray list = new JSONArray();
