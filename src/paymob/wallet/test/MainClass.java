@@ -30,7 +30,7 @@ public class MainClass {
                 //x.genNormalReq();
                 
                 /*
-                System.out.println("Generating normal send payment request");
+                            System.out.println("Generating normal send payment request");
                 x.genPayReq();
                 System.out.println("Generating normal Transaction request");
                 x.genTransactionRequestReq();
