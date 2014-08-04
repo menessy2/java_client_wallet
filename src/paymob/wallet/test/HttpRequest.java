@@ -12,6 +12,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 import javax.net.ssl.SSLSocketFactory;
 import javax.xml.bind.DatatypeConverter;
@@ -121,7 +123,7 @@ public class HttpRequest {
 	}
         
         
-        public static String executeHTTPSRequest(JSONObject jsonObj, Function func, String key_per_session, String session) throws UnsupportedEncodingException {
+        public static String executeHTTPSRequest(JSONObject jsonObj, Function func, String key_per_session, String session) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
 
 		if (!isReady) {
 			init();
