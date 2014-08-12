@@ -132,7 +132,7 @@ public class HttpRequest {
                 byte[] mybyte = jsonObj.toString().getBytes();
                 
                 byte[] req = Mobile.encrypt_aes(mybyte, key_per_session, "ZgP#d_qH543LgpS-");
-                System.out.println("KEY:"+key_per_session);
+                //System.out.println("KEY:"+key_per_session);
 		String type = "application/x-www-form-urlencoded";
                 //System.out.println(session);
                 String raw = session.substring(0,20) + 
