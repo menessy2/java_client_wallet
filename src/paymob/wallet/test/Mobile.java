@@ -60,6 +60,8 @@ public class Mobile {
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
+    private static final Charset ASCII = Charset.forName("US-ASCII");
+    
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
@@ -90,10 +92,8 @@ public class Mobile {
             keyPairGenerator.initialize(2048, new SecureRandom());
             KeyPair keyPair = keyPairGenerator.genKeyPair();
             publicKey = keyPair.getPublic();
-
             private_key_not_to_be_stored_on_mobile = DatatypeConverter
                     .printBase64Binary(keyPair.getPrivate().getEncoded());
-
         } catch (NoSuchAlgorithmException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -222,91 +222,177 @@ public class Mobile {
         }
     }
 
-    public void sendMessage(String content) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+    
+    public JSONObject parseResponse(String response) throws IOException, ParseException{
+       
+            BASE64Decoder base64decoder = new BASE64Decoder();
+            byte[] cleartext = base64decoder.decodeBuffer(response);
+
+            byte[] req = decrypt_aes(cleartext, key_per_session, "ZgP#d_qH543LgpS-");
+
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(new String(req));
+            JSONArray myjson = (JSONArray) jsonObject.get("details");
+            JSONObject myobject = (JSONObject) myjson.get(0);
+            
+            return myobject;
+    }
+    
+    
+    public void sendNormalMessage(String content, String threadID,JSONArray mobiles) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+        JSONObject jsonobj = new JSONObject();
+        JSONObject jsonobj_internal = new JSONObject();
+        JSONArray list = new JSONArray();
+        
+        jsonobj_internal.put("content", content);
+        jsonobj_internal.put("req_type", "n");
+        
+        if ( ! threadID.equals("") )
+            jsonobj_internal.put("cur_thread", threadID);
+        
+        if ( mobiles != null )
+            jsonobj_internal.put("recipients", mobiles);
+        
+        list.add(jsonobj_internal);
+        jsonobj.put("results", list);
+                
+        String request = HttpRequest.executeHTTPSRequest(jsonobj,
+                HttpRequest.Function.SEND_MSG, this.key_per_session, this.session);
+        
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            String thread_id = (String) obj.get("thread_id");
+            String message_id = (String) obj.get("message_id");
+            
+            System.out.println(message_id);
+            System.out.println(thread_id);
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+    }
+    
+    public void sendTransactionRequest(String content,double amount,Frequency frequencyObject,
+            String threadID,JSONArray mobiles) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+        JSONObject jsonobj = new JSONObject();
+        JSONObject jsonobj_internal = new JSONObject();
+        JSONArray list = new JSONArray();
+
+        // message content
+        if ( ! threadID.equals("") )
+            jsonobj_internal.put("cur_thread", threadID);
+        
+        if ( mobiles != null )
+            jsonobj_internal.put("recipients", mobiles);
+        
+       // System.out.println(frequencyObject.toJSONArray());
+        
+        jsonobj_internal.put("content", content);
+        jsonobj_internal.put("req_type", "t");
+        jsonobj_internal.put("amount", amount);
+        jsonobj_internal.put("frequency", frequencyObject.toJSONArray() );
+        //////////////////////////////////////////
+        list.add(jsonobj_internal);
+        jsonobj.put("results", list);
+                //byte[] req = encrypt_aes(jsonobj.toJSONString().getBytes(), key_per_session, "ZgP#d_qH543LgpS-");
+
+        String request = HttpRequest.executeHTTPSRequest(jsonobj,
+                HttpRequest.Function.SEND_MSG, this.key_per_session, this.session);
+        
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            String thread_id = (String) obj.get("thread_id");
+            String message_id = (String) obj.get("message_id");
+            
+            System.out.println(message_id);
+            System.out.println(thread_id);
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+    }
+    
+    public void sendTransactionReply(String content,String threadID,String transactionID) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+        JSONObject jsonobj = new JSONObject();
+        JSONObject jsonobj_internal = new JSONObject();
+        JSONArray list = new JSONArray();
+
+        // message content
+        jsonobj_internal.put("req_type", "r");
+        jsonobj_internal.put("content", content);
+        jsonobj_internal.put("cur_thread", threadID);
+        jsonobj_internal.put("transaction_id", transactionID);
+        
+        list.add(jsonobj_internal);
+        jsonobj.put("results", list);
+        
+        String request = HttpRequest.executeHTTPSRequest(jsonobj,
+                HttpRequest.Function.SEND_MSG, this.key_per_session, this.session);
+        
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            String thread_id = (String) obj.get("thread_id");
+            String message_id = (String) obj.get("message_id");
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
+    }
+     
+    public void sendPayment(String content,String threadID,double amount,JSONArray mobiles) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
         JSONObject jsonobj = new JSONObject();
         JSONObject jsonobj_internal = new JSONObject();
         JSONArray list = new JSONArray();
 
         // message content
         jsonobj_internal.put("content", content);
+        jsonobj_internal.put("req_type", "p");
+        jsonobj_internal.put("amount", amount);
 
-        /*
-         4 types of a message
-         t: transaction request
-         r: transaction reply
-         p: payment transfer
-         n: normal message
-         */
-        jsonobj_internal.put("req_type", "n");
-
-        /*
-         Such variable is neglected in case the message is of type normal
-         ex: 30.0
-         */
-        jsonobj_internal.put("amount", "30.0");
-
-        /*
-         For specifying on which thread the user is sending the message
-         In case there is no thread, such variable is neglected
-         */
-                //jsonobj_internal.put("cur_thread", list);
-        /*
-         Used in transaction reply requests , for specifying the user is
-         responding to which transaction request id
-         */
-                //jsonobj_internal.put("transaction_id", list);
-        /*
-         Used only when the transaction id is not sent 
-         */
-        JSONArray mobiles = new JSONArray();
-        mobiles.add("201005087034");
-        mobiles.add("201005087035");
-        mobiles.add("201005087036");
-        jsonobj_internal.put("recipients", mobiles);
-
-        /////////////////////
-        JSONArray req_frequency = new JSONArray();
-        /////////////////////   occurence_start
-        JSONObject occurence_start = new JSONObject();
-
-        /*
-         o: once
-         m: monthly
-         y: yearly
-         */
-        occurence_start.put("type", "o");
-        occurence_start.put("starting_date", "");
-        occurence_start.put("day", "");
-        occurence_start.put("month", "");
-
-        JSONObject ending = new JSONObject();
-        /*
-         u: until_date
-         f: forever
-         x: x_times
-         */
-        ending.put("type", "");
-        ending.put("counter", "");
-        ending.put("end_date", "");
-        //////////////////////////////////
-        req_frequency.add(occurence_start);
-        req_frequency.add(ending);
-
-        jsonobj_internal.put("req_frequency", req_frequency);
+        if ( ! threadID.equals("") )
+            jsonobj_internal.put("cur_thread", threadID);
+        
+        if ( mobiles != null )
+            jsonobj_internal.put("recipients", mobiles);
         //////////////////////////////////////////
         list.add(jsonobj_internal);
         jsonobj.put("results", list);
-
-        System.out.println("before");
                 //byte[] req = encrypt_aes(jsonobj.toJSONString().getBytes(), key_per_session, "ZgP#d_qH543LgpS-");
 
         String request = HttpRequest.executeHTTPSRequest(jsonobj,
                 HttpRequest.Function.SEND_MSG, this.key_per_session, this.session);
-
-        System.out.println("after: " + request);
+        
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            String thread_id = (String) obj.get("thread_id");
+            String message_id = (String) obj.get("message_id");
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            
     }
-
-    private static final Charset ASCII = Charset.forName("US-ASCII");
+    
+    
+    public void syncContacts(JSONObject newNumbers){
+        
+    }
+    
 
     public static byte[] decrypt_aes(byte[] plainText, String encryptionKey, String IV) {
         try {
@@ -340,7 +426,6 @@ public class Mobile {
             Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             SecretKeySpec key = new SecretKeySpec(encryptionKey.getBytes(), "AES");
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(IV.getBytes("UTF8")));
-            //System.out.println(plainText.length);
             int padding = (16 - (plainText.length % 16));
             byte[] padded_value = new byte[padding];
             for (int i = 0; i < padding; i++) {
@@ -351,14 +436,7 @@ public class Mobile {
 
             System.arraycopy(plainText, 0, combined, 0, plainText.length);
             System.arraycopy(padded_value, 0, combined, plainText.length, padded_value.length);
-            System.out.println("Combined");
-            for (int i = 0; i < combined.length; i++) {
-                System.out.print(combined[i]);
-            }
-                //System.out.println(plainText.length);
-            //System.out.println(combined.length);
             return cipher.doFinal(combined);
-
         } catch (InvalidKeyException ex) {
             Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidAlgorithmParameterException ex) {
