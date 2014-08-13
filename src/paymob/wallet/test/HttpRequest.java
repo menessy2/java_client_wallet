@@ -46,13 +46,15 @@ public class HttpRequest {
 
 	public static enum Function {
 		ACTIVATE_WALLET, LOGIN, SEND_MSG, SYNC_MSG, SYNC_CONTACTS,
+                GET_MESSAGES,
 	}
 
 	private static void init() {
 		methods.put(Function.LOGIN, "login");
 		methods.put(Function.SEND_MSG, "send_message");
 		methods.put(Function.ACTIVATE_WALLET, "activate_wallet");
-		methods.put(Function.SYNC_MSG, "sync/message");
+		methods.put(Function.SYNC_MSG, "sync/bulk_messages");
+                methods.put(Function.GET_MESSAGES, "get_messages");
 		methods.put(Function.SYNC_CONTACTS, "sync/contacts");
 	}
 
@@ -129,6 +131,7 @@ public class HttpRequest {
 			init();
 			isReady = true;
 		}
+                
                 byte[] mybyte = jsonObj.toString().getBytes();
                 
                 byte[] req = Mobile.encrypt_aes(mybyte, key_per_session, "ZgP#d_qH543LgpS-");
