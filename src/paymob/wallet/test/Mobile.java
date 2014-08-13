@@ -389,11 +389,44 @@ public class Mobile {
     }
     
     
-    public void syncContacts(JSONObject newNumbers){
+    public void syncContacts(JSONObject newNumbers) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException{
+        JSONObject jsonobj = new JSONObject();
+        JSONArray list = new JSONArray();
+        list.add(newNumbers);
+        jsonobj.put("results", list);
+               
+        String request = HttpRequest.executeHTTPSRequest(jsonobj,
+                HttpRequest.Function.SYNC_CONTACTS, this.key_per_session, this.session);
         
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 
+    public void syncBulkMessages(JSONObject object_) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException{
+        
+        String request = HttpRequest.executeHTTPSRequest(object_,
+                HttpRequest.Function.SYNC_MSG, this.key_per_session, this.session);
+        
+        try {
+            JSONObject obj = parseResponse(request);
+            System.out.println(obj.toJSONString());
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Mobile.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
     public static byte[] decrypt_aes(byte[] plainText, String encryptionKey, String IV) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
