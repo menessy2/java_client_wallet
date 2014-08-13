@@ -23,7 +23,7 @@ public class MainClass {
                 
                 Mobile mob = new Mobile();
                 System.out.println("Activation Request is occuring");
-                mob.activate("7ijf44v");
+                mob.activate("6eb7vah");
                 
                 System.out.println("Generating Login Request");
                 mob.login();
@@ -38,26 +38,43 @@ public class MainClass {
                 
                 Date startDate = new Date();
                 Date  endDate = new Date();
-                Frequency obj = new Frequency(startDate,endDate,"3","12","",
+                Frequency obj1 = new Frequency(startDate,endDate,"3","12","",
                         Frequency.StartFrequencyType.MONTHLY,
                         Frequency.EndFrequencyType.FOREVER);
-                mob.sendTransactionRequest("transaction req", 40.0, obj,"",mobiles);
                 
+                Frequency obj2 = new Frequency(startDate,endDate,"3","12","",
+                        Frequency.StartFrequencyType.ONCE,
+                        Frequency.EndFrequencyType.UNTIL_DATE);
                 
-                System.out.println("Sending Transaction Reply");
-                mob.sendTransactionReply("reply", "22", "2");
-                //System.out.println("Generating normal send message request");
-                //x.genNormalReq();
+                Frequency obj3 = new Frequency(startDate,endDate,"3","12","",
+                        Frequency.StartFrequencyType.YEARLY,
+                        Frequency.EndFrequencyType.X_TIMES);
                 
+                //mob.sendTransactionRequest("transaction req", 40.0, obj2,"",mobiles);
+                //mob.sendTransactionReply("reply", "3", "2");
+                //System.out.println("Sending Payment");
+                //mob.sendPayment("send payment", "", 50.0, mobiles);
                 /*
-                            System.out.println("Generating normal send payment request");
-                x.genPayReq();
-                System.out.println("Generating normal Transaction request");
-                x.genTransactionRequestReq();
-                
-                //cancelTransactionRequest();
-                  //syncContacts();
+                JSONObject newMobiles = new JSONObject();
+                newMobiles.put("201005558655", "Adsada asdasd");
+                newMobiles.put("201005558635", "Adsada agasdasd");
+                newMobiles.put("201005558615", "Adsadada asdasd");
+                newMobiles.put("201005558605", "Adsadada asdasd");
+                newMobiles.put("201005558005", "Adsadada asdasd");
+                newMobiles.put("201005550005", "Adsadada asdasd");
+                newMobiles.put("201000998005", "Adsadada asdasd");
+                newMobiles.put("201000558005", "Adsadada asdasd");
+                newMobiles.put("201000558005", "Adsadada asdasd");
+                newMobiles.put("201005558004", "Adsadada asdasd");
+                newMobiles.put("201005553004", "Adsadada asdasd");
+                mob.syncContacts(newMobiles);
                 */
+                JSONObject _obj = new JSONObject();
+                
+                _obj.put("time","31122014606024");
+                mob.syncBulkMessages(_obj);
+
+                
 	}
 
 }
