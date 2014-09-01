@@ -21,9 +21,10 @@ public class MainClass {
 	public static void main(String[] args) throws IOException, IllegalBlockSizeException, UnsupportedEncodingException, BadPaddingException  {
                 System.out.println("Hello first");
                 
-                Mobile mob = new Mobile();
+                Mobile mob = new Mobile("201005558658","my_device_id","my_serial_sim_id",
+                        "gcm_id","adm_id");
                 System.out.println("Activation Request is occuring");
-                mob.activate("6eb7vah");
+                mob.activate("6u2eufl");
                 
                 System.out.println("Generating Login Request");
                 mob.login();
