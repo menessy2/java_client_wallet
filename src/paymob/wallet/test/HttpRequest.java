@@ -35,8 +35,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONArray;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import sun.misc.BASE64Decoder;
 
 public class HttpRequest {
 
@@ -134,7 +138,7 @@ public class HttpRequest {
                 
                 byte[] mybyte = jsonObj.toString().getBytes();
                 
-                byte[] req = Mobile.encrypt_aes(mybyte, key_per_session, "ZgP#d_qH543LgpS-");
+                byte[] req = Security.encrypt_aes(mybyte, key_per_session, Mobile.initializationV);
                 //System.out.println("KEY:"+key_per_session);
 		String type = "application/x-www-form-urlencoded";
                 //System.out.println(session);
@@ -223,4 +227,20 @@ public class HttpRequest {
 		}
 
 	}
+        
+        
+        public static JSONObject parseResponse(String response,String key_per_session) throws IOException, ParseException{
+       
+            BASE64Decoder base64decoder = new BASE64Decoder();
+            byte[] cleartext = base64decoder.decodeBuffer(response);
+
+            byte[] req = Security.decrypt_aes(cleartext, key_per_session, Mobile.initializationV);
+
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(new String(req));
+            JSONArray myjson = (JSONArray) jsonObject.get("details");
+            JSONObject myobject = (JSONObject) myjson.get(0);
+            
+            return myobject;
+    }
 }
